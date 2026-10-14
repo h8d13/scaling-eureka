@@ -28,8 +28,8 @@ source "$MAKEPKG_LIBRARY/util/util.sh"
 
 known_hash_algos=({ck,md5,sha{1,224,256,384,512},b2})
 
-pkgbuild_schema_arrays=(arch backup checkdepends conflicts depends groups
-                        license makedepends noextract optdepends options
+pkgbuild_schema_arrays=(arch autosplit backup checkdepends conflicts depends
+                        groups license makedepends noextract optdepends options
                         provides replaces source validpgpkeys xdata
                         "${known_hash_algos[@]/%/sums}")
 

@@ -978,6 +978,7 @@ run_single_packaging() {
 		run_package $1
 	fi
 	tidy_install
+	run_autosplit
 	lint_package || exit $E_PACKAGE_FAILED
 	create_package
 }

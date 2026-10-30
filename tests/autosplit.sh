@@ -15,7 +15,7 @@ arch=(x86_64)
 license=(0BSD)
 options=(!debug)
 provides=(libfoo.so)
-autosplit=(docs lang libs static)
+autosplit=(docs lang libs pyc-opt)
 
 build() {
 	printf 'int f(void) { return 0; }\n' |
@@ -36,8 +36,11 @@ EOF
 export MAKEPKG_LIBRARY=$root/lib PKGDEST=$tmp/out PKGEXT=.pkg.tar
 mkdir "$tmp/out"
 cd "$tmp"
+# PKGBUILD options=(autodeps) fails lint in 7.1, only the config can set it
+cp "$root/makepkg.conf" .
+echo 'OPTIONS+=(autodeps)' >> makepkg.conf
 mkpkg() {
-	"$root/makepkg" --config "$root/makepkg.conf" "$@"
+	"$root/makepkg" --config "$tmp/makepkg.conf" "$@"
 }
 
 mkpkg --packagelist > listed
@@ -48,14 +51,14 @@ expected="$PKGDEST/foo-1-1-x86_64.pkg.tar
 $PKGDEST/foo-docs-1-1-any.pkg.tar
 $PKGDEST/foo-lang-1-1-any.pkg.tar
 $PKGDEST/foo-libs-1-1-x86_64.pkg.tar
-$PKGDEST/foo-static-1-1-x86_64.pkg.tar"
+$PKGDEST/foo-pyc-opt-1-1-any.pkg.tar"
 
 ret=0
 if [[ $(< listed) != "$expected" ]]; then
 	printf 'unexpected --packagelist:\n%s\n' "$(< listed)" >&2
 	ret=1
 fi
-# static has nothing to carve, listed but never built
+# no python files: pyc-opt is listed but never built
 extra=$(comm -13 <(sort listed) built)
 if [[ -n $extra ]]; then
 	printf 'built but not listed:\n%s\n' "$extra" >&2
@@ -72,17 +75,19 @@ info() {
 	bsdtar -xOf "out/$1-1-1-x86_64.pkg.tar" .PKGINFO | sed -n "s/^$2 = //p"
 }
 
-# built splits are hinted, required -libs and empty -static are not
+# built splits are hinted, required -libs and empty -pyc-opt are not
 hints=$(info foo optdepend)
 if [[ $hints != $'foo-docs: documentation\nfoo-lang: translations' ]]; then
 	printf 'unexpected optdepends:\n%s\n' "$hints" >&2
 	ret=1
 fi
 
-# the versioned .so provide follows the library into -libs
-if [[ $(info foo provides) || $(info foo-libs provides) != libfoo.so=1-64 ]]
-then
-	echo "libfoo.so provide not moved to foo-libs" >&2
+# soname provides follow the library into -libs: v1 (provides=(libfoo.so))
+# by moving it, v2 (autodeps, lib:) since it scans each package on its own
+if [[ $(info foo provides) ||
+	$(info foo-libs provides) != $'libfoo.so=1-64\nlib:libfoo.so.1' ]]; then
+	printf 'unexpected provides:\n%s\n--\n%s\n' \
+		"$(info foo provides)" "$(info foo-libs provides)" >&2
 	ret=1
 fi
 

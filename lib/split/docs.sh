@@ -26,6 +26,7 @@ MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('docs')
+split_any+=('docs')
 
 # port of abuild default_doc, minus licenses (kept in every package) and
 # man page compression (done by the zipman option)
@@ -33,7 +34,6 @@ default_split_docs() {
 	local d
 
 	pkgdesc+=" (documentation)"
-	arch=('any')
 
 	for d in doc man info html sgml gtk-doc ri help; do
 		split_move "usr/share/$d"

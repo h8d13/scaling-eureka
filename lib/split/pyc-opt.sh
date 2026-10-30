@@ -26,6 +26,7 @@ MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('pyc-opt')
+split_any+=('pyc-opt')
 
 # Only read by python -O/-OO, unlike plain .pyc which unprivileged users can
 # not regenerate under /usr. abuild default_pyc moves all three levels and
@@ -34,7 +35,6 @@ default_split_pyc-opt() {
 	local -a dirs files
 
 	pkgdesc+=" (optimized bytecode for python -O/-OO)"
-	arch=('any')
 	depends=("$pkgname=$(get_full_version)")
 
 	dirs=(usr/lib/python3*)

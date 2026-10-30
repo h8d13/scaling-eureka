@@ -29,7 +29,7 @@ source "$MAKEPKG_LIBRARY/util/pkgbuild.sh"
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 
-declare -a split_types split_required
+declare -a split_types split_required split_any
 
 # sourced before tidy.sh, which marks packaging_options readonly
 packaging_options+=('autosplit')
@@ -38,7 +38,7 @@ for lib in "$MAKEPKG_LIBRARY/split/"*.sh; do
 	source "$lib"
 done
 
-readonly -a split_types split_required
+readonly -a split_types split_required split_any
 
 
 # PKGBUILD autosplit=() wins over AUTOSPLIT from makepkg.conf
@@ -102,6 +102,8 @@ run_split_function() {
 	unset groups provides conflicts replaces backup install changelog \
 		optdepends depends
 	pkgtype=split
+	# known before the split runs, so --packagelist can name it
+	in_array "$1" "${split_any[@]}" && arch=('any')
 	cd_safe "$pkgdir"
 
 	# PKGBUILD override, may call default_split_$1 itself

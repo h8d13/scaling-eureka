@@ -201,13 +201,22 @@ get_pkg_arch() {
 
 print_all_package_names() {
 	local version=$(get_full_version)
-	local architecture pkg opts a
+	local architecture pkg opts a type
+	local -a types
+
+	check_option "autosplit" "n" || get_autosplit types
 	for pkg in ${pkgname[@]}; do
 		# Split package not relevant for current CARCH
 		if ! architecture=$(get_pkg_arch $pkg); then
 			continue
 		fi
 		printf "%s/%s-%s-%s%s\n" "$PKGDEST" "$pkg" "$version" "$architecture" "$PKGEXT"
+		# listed even when the split ends up empty and is never built
+		for type in "${types[@]}"; do
+			a=$architecture
+			in_array "$type" "${split_any[@]}" && a=any
+			printf "%s/%s-%s-%s%s\n" "$PKGDEST" "$pkg-$type" "$version" "$a" "$PKGEXT"
+		done
 	done
 	if check_option "debug" "y" && check_option "strip" "y"; then
 		architecture=$(get_pkg_arch)

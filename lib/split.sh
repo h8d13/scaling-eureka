@@ -104,13 +104,21 @@ run_split_function() {
 	pkgtype=split
 	# known before the split runs, so --packagelist can name it
 	in_array "$1" "${split_any[@]}" && arch=('any')
+	local -a split_arch=("${arch[@]}")
 	cd_safe "$pkgdir"
 
 	# PKGBUILD override, may call default_split_$1 itself
 	if have_function "split_$1"; then
-		"split_$1"
+		"split_$1" || return
 	else
-		"default_split_$1"
+		"default_split_$1" || return
+	fi
+
+	# else the built file no longer matches its --packagelist name
+	if [[ ${arch[*]} != "${split_arch[*]}" ]]; then
+		error "$(gettext "%s may not change arch, it is set by the split type")" \
+				"split_$1"
+		return 1
 	fi
 }
 

@@ -50,5 +50,17 @@ if [[ -n $extra ]]; then
 	printf 'built but not listed:\n%s\n' "$extra" >&2
 	ret=1
 fi
+
+# an override changing arch would build a file --packagelist doesn't name
+cat >> PKGBUILD <<'EOF'
+split_docs() {
+	default_split_docs
+	arch=(x86_64)
+}
+EOF
+if mkpkg -f --nocheck; then
+	echo "split_docs changed arch, build should fail" >&2
+	ret=1
+fi
 ((ret)) || echo "autosplit: ok"
 exit $ret

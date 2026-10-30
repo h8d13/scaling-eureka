@@ -125,9 +125,21 @@ run_split_function() {
 	fi
 }
 
+# .so provides in $2.. whose library file is in $1, the same lookup as
+# find_libprovides, which leaves them unversioned where the file is gone
+lib_provides() {
+	local dir=$1 p
+	shift
+	for p; do
+		[[ $p = *.so ]] || continue
+		[[ -n $(find "$dir" -type f -name "$p*" -print -quit) ]] &&
+			printf '%s\n' "$p"
+	done
+}
+
 run_autosplit() {
-	local type split splitdir
-	local -a types
+	local type split splitdir p
+	local -a types moved kept
 
 	check_option "autosplit" "n" && return 0
 
@@ -139,12 +151,15 @@ run_autosplit() {
 
 		# metadata changes must not leak into the main package
 		(
+			local -a main_provides=("${provides[@]}")
 			run_split_function "$type" || exit $E_PACKAGE_FAILED
 
 			if dir_is_empty "$splitdir"; then
 				rmdir "$splitdir"
 				exit 0
 			fi
+			mapfile -t -O "${#provides[@]}" provides \
+				< <(lib_provides "$splitdir" "${main_provides[@]}")
 
 			msg "$(gettext "Splitting \"%s\"...")" "$split"
 			pkgname=$split
@@ -154,6 +169,13 @@ run_autosplit() {
 		) || exit $?
 
 		[[ -d $splitdir ]] || continue
+		mapfile -t moved < <(lib_provides "$splitdir" "${provides[@]}")
+		kept=()
+		for p in "${provides[@]}"; do
+			in_array "$p" "${moved[@]}" || kept+=("$p")
+		done
+		provides=("${kept[@]}")
+
 		# e.g. binaries left in the main package link against -libs
 		if in_array "$type" "${split_required[@]}"; then
 			depends+=("$split=$(get_full_version)")

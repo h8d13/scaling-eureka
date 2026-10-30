@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 #
-#   doc.sh - Split documentation into $pkgname-doc
+#   docs.sh - Split documentation into $pkgname-docs
 #
 #   Copyright (c) 2026 Pacman Development Team <pacman-dev@lists.archlinux.org>
 #
@@ -18,18 +18,18 @@
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-[[ -n "$LIBMAKEPKG_SPLIT_DOC_SH" ]] && return
-LIBMAKEPKG_SPLIT_DOC_SH=1
+[[ -n "$LIBMAKEPKG_SPLIT_DOCS_SH" ]] && return
+LIBMAKEPKG_SPLIT_DOCS_SH=1
 
 MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
-split_types+=('doc')
+split_types+=('docs')
 
 # port of abuild default_doc, minus licenses (kept in every package) and
 # man page compression (done by the zipman option)
-default_split_doc() {
+default_split_docs() {
 	local d
 
 	pkgdesc+=" (documentation)"

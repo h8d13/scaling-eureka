@@ -29,7 +29,7 @@ source "$MAKEPKG_LIBRARY/util/pkgbuild.sh"
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 
-declare -a split_types split_required split_any
+declare -a split_types
 declare -A split_desc
 
 # sourced before tidy.sh, which marks packaging_options readonly
@@ -39,7 +39,7 @@ for lib in "$MAKEPKG_LIBRARY/split/"*.sh; do
 	source "$lib"
 done
 
-readonly -a split_types split_required split_any
+readonly -a split_types
 readonly -A split_desc
 
 
@@ -96,18 +96,14 @@ split_move() {
 }
 
 # Call in a subshell, it resets package metadata before carving $splitdir.
-# Split functions start in $pkgdir, like abuild's pre_split, and can read
-# the main package's depends from main_depends.
+# Split functions start in $pkgdir, like abuild's pre_split. Splits only
+# carry arch-independent data, so --packagelist can name them up front.
 run_split_function() {
-	local -a main_depends=("${depends[@]}")
-
 	unset groups provides conflicts replaces backup install changelog \
 		optdepends depends
 	pkgtype=split
-	[[ -n ${split_desc[$1]} ]] && pkgdesc+=" (${split_desc[$1]})"
-	# known before the split runs, so --packagelist can name it
-	in_array "$1" "${split_any[@]}" && arch=('any')
-	local -a split_arch=("${arch[@]}")
+	pkgdesc+=" (${split_desc[$1]})"
+	arch=('any')
 	cd_safe "$pkgdir"
 
 	# PKGBUILD override, may call default_split_$1 itself
@@ -117,29 +113,16 @@ run_split_function() {
 		"default_split_$1" || return
 	fi
 
-	# else the built file no longer matches its --packagelist name
-	if [[ ${arch[*]} != "${split_arch[*]}" ]]; then
-		error "$(gettext "%s may not change arch, it is set by the split type")" \
+	if [[ ${arch[*]} != any ]]; then
+		error "$(gettext "%s may not change arch, splits are always 'any'")" \
 				"split_$1"
 		return 1
 	fi
 }
 
-# .so provides in $2.. whose library file is in $1, the same lookup as
-# find_libprovides, which leaves them unversioned where the file is gone
-lib_provides() {
-	local dir=$1 p
-	shift
-	for p; do
-		[[ $p = *.so ]] || continue
-		[[ -n $(find "$dir" -type f -name "$p*" -print -quit) ]] &&
-			printf '%s\n' "$p"
-	done
-}
-
 run_autosplit() {
-	local type split splitdir p
-	local -a types moved kept
+	local type split splitdir
+	local -a types
 
 	check_option "autosplit" "n" && return 0
 
@@ -151,15 +134,12 @@ run_autosplit() {
 
 		# metadata changes must not leak into the main package
 		(
-			local -a main_provides=("${provides[@]}")
 			run_split_function "$type" || exit $E_PACKAGE_FAILED
 
 			if dir_is_empty "$splitdir"; then
 				rmdir "$splitdir"
 				exit 0
 			fi
-			mapfile -t -O "${#provides[@]}" provides \
-				< <(lib_provides "$splitdir" "${main_provides[@]}")
 
 			msg "$(gettext "Splitting \"%s\"...")" "$split"
 			pkgname=$split
@@ -168,20 +148,9 @@ run_autosplit() {
 			create_package
 		) || exit $?
 
-		[[ -d $splitdir ]] || continue
-		mapfile -t moved < <(lib_provides "$splitdir" "${provides[@]}")
-		kept=()
-		for p in "${provides[@]}"; do
-			in_array "$p" "${moved[@]}" || kept+=("$p")
-		done
-		provides=("${kept[@]}")
-
-		# e.g. binaries left in the main package link against -libs
-		if in_array "$type" "${split_required[@]}"; then
-			depends+=("$split=$(get_full_version)")
-		else
-			# pacman shows it on install, else the split goes unnoticed
-			optdepends+=("$split${split_desc[$type]:+: ${split_desc[$type]}}")
+		# pacman shows it on install, else the split goes unnoticed
+		if [[ -d $splitdir ]]; then
+			optdepends+=("$split: ${split_desc[$type]}")
 		fi
 	done
 }

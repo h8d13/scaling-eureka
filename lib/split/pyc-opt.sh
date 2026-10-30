@@ -27,7 +27,6 @@ source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('pyc-opt')
 split_desc[pyc-opt]='optimized bytecode for python -O/-OO'
-split_any+=('pyc-opt')
 
 # Only read by python -O/-OO, unlike plain .pyc which unprivileged users can
 # not regenerate under /usr. abuild default_pyc moves all three levels and

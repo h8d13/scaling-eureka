@@ -27,7 +27,6 @@ source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('lang')
 split_desc[lang]='translations'
-split_any+=('lang')
 
 # port of abuild default_lang
 default_split_lang() {

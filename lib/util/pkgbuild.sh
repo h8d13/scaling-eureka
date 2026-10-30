@@ -213,9 +213,7 @@ print_all_package_names() {
 		printf "%s/%s-%s-%s%s\n" "$PKGDEST" "$pkg" "$version" "$architecture" "$PKGEXT"
 		# listed even when the split ends up empty and is never built
 		for type in "${types[@]}"; do
-			a=$architecture
-			in_array "$type" "${split_any[@]}" && a=any
-			printf "%s/%s-%s-%s%s\n" "$PKGDEST" "$pkg-$type" "$version" "$a" "$PKGEXT"
+			printf "%s/%s-%s-any%s\n" "$PKGDEST" "$pkg-$type" "$version" "$PKGEXT"
 		done
 	done
 	if check_option "debug" "y" && check_option "strip" "y"; then

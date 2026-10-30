@@ -38,9 +38,8 @@ lint_autosplit() {
 
 	get_autosplit types
 	for type in "${types[@]}"; do
-		# PKGBUILDs may add their own types by defining split_<type>
-		if ! in_array "$type" "${split_types[@]}" && \
-				! have_function "split_$type"; then
+		# per-package splits (-qt, -gtk) belong in pkgname=() instead
+		if ! in_array "$type" "${split_types[@]}"; then
 			error "$(gettext "%s array contains unknown split type '%s'")" \
 					"autosplit" "$type"
 			ret=1

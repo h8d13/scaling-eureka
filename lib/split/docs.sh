@@ -29,13 +29,13 @@ split_types+=('docs')
 split_any+=('docs')
 
 # port of abuild default_doc, minus licenses (kept in every package) and
-# man page compression (done by the zipman option)
+# man pages (kept in the main package, as Arch does with -docs splits)
 default_split_docs() {
 	local d
 
 	pkgdesc+=" (documentation)"
 
-	for d in doc man info html sgml gtk-doc ri help; do
+	for d in doc info html sgml gtk-doc ri help; do
 		split_move "usr/share/$d"
 	done
 

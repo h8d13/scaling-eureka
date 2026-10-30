@@ -19,6 +19,7 @@ autosplit=(docs lang dev)
 package() {
 	install -Dm755 /dev/null "$pkgdir/usr/bin/foo"
 	install -Dm644 /dev/null "$pkgdir/usr/share/doc/foo/README"
+	install -Dm644 /dev/null "$pkgdir/usr/share/man/man1/foo.1"
 	install -Dm644 /dev/null "$pkgdir/usr/share/locale/fr/LC_MESSAGES/foo.mo"
 }
 EOF
@@ -48,6 +49,11 @@ fi
 extra=$(comm -13 <(sort listed) built)
 if [[ -n $extra ]]; then
 	printf 'built but not listed:\n%s\n' "$extra" >&2
+	ret=1
+fi
+# man pages stay with the main package, -docs only takes the rest
+if ! bsdtar -tf out/foo-1-1-x86_64.pkg.tar | grep -q '^usr/share/man/'; then
+	echo "man pages missing from foo" >&2
 	ret=1
 fi
 

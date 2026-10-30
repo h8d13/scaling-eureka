@@ -30,6 +30,7 @@ source "$MAKEPKG_LIBRARY/util/util.sh"
 
 
 declare -a split_types split_required split_any
+declare -A split_desc
 
 # sourced before tidy.sh, which marks packaging_options readonly
 packaging_options+=('autosplit')
@@ -39,6 +40,7 @@ for lib in "$MAKEPKG_LIBRARY/split/"*.sh; do
 done
 
 readonly -a split_types split_required split_any
+readonly -A split_desc
 
 
 # PKGBUILD autosplit=() wins over AUTOSPLIT from makepkg.conf
@@ -102,6 +104,7 @@ run_split_function() {
 	unset groups provides conflicts replaces backup install changelog \
 		optdepends depends
 	pkgtype=split
+	[[ -n ${split_desc[$1]} ]] && pkgdesc+=" (${split_desc[$1]})"
 	# known before the split runs, so --packagelist can name it
 	in_array "$1" "${split_any[@]}" && arch=('any')
 	local -a split_arch=("${arch[@]}")
@@ -150,9 +153,13 @@ run_autosplit() {
 			create_package
 		) || exit $?
 
+		[[ -d $splitdir ]] || continue
 		# e.g. binaries left in the main package link against -libs
-		if [[ -d $splitdir ]] && in_array "$type" "${split_required[@]}"; then
+		if in_array "$type" "${split_required[@]}"; then
 			depends+=("$split=$(get_full_version)")
+		else
+			# pacman shows it on install, else the split goes unnoticed
+			optdepends+=("$split${split_desc[$type]:+: ${split_desc[$type]}}")
 		fi
 	done
 }

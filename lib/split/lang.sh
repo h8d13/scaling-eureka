@@ -26,12 +26,11 @@ MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('lang')
+split_desc[lang]='translations'
 split_any+=('lang')
 
 # port of abuild default_lang
 default_split_lang() {
-	pkgdesc+=" (translations)"
-
 	split_move usr/share/locale
 
 	return 0

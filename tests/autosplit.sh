@@ -57,6 +57,13 @@ if ! bsdtar -tf out/foo-1-1-x86_64.pkg.tar | grep -q '^usr/share/man/'; then
 	ret=1
 fi
 
+# built splits are hinted from the main package, empty -dev is not
+hints=$(bsdtar -xOf out/foo-1-1-x86_64.pkg.tar .PKGINFO | sed -n 's/^optdepend = //p')
+if [[ $hints != $'foo-docs: documentation\nfoo-lang: translations' ]]; then
+	printf 'unexpected optdepends:\n%s\n' "$hints" >&2
+	ret=1
+fi
+
 # an override changing arch would build a file --packagelist doesn't name
 cat >> PKGBUILD <<'EOF'
 split_docs() {

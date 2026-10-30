@@ -26,28 +26,25 @@ MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('bash-completion' 'zsh-completion' 'fish-completion')
+split_desc[bash-completion]='bash completions'
+split_desc[zsh-completion]='zsh completions'
+split_desc[fish-completion]='fish completions'
 split_any+=('bash-completion' 'zsh-completion' 'fish-completion')
 
 # ports of abuild default_{bash,zsh,fish}comp
 default_split_bash-completion() {
-	pkgdesc+=" (bash completions)"
-
 	split_move usr/share/bash-completion/completions
 
 	return 0
 }
 
 default_split_zsh-completion() {
-	pkgdesc+=" (zsh completions)"
-
 	split_move usr/share/zsh/site-functions
 
 	return 0
 }
 
 default_split_fish-completion() {
-	pkgdesc+=" (fish completions)"
-
 	split_move usr/share/fish/vendor_completions.d usr/share/fish/completions
 
 	return 0

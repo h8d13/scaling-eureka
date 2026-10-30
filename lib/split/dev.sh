@@ -26,13 +26,13 @@ MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('dev')
+split_desc[dev]='development files'
 
 # port of abuild default_dev
 default_split_dev() {
 	local f
 	local -a files types
 
-	pkgdesc+=" (development files)"
 	depends=("$pkgname=$(get_full_version)")
 
 	split_move usr/include usr/lib/pkgconfig usr/share/pkgconfig \

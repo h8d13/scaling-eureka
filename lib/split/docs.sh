@@ -26,14 +26,13 @@ MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('docs')
+split_desc[docs]='documentation'
 split_any+=('docs')
 
 # port of abuild default_doc, minus licenses (kept in every package) and
 # man pages (kept in the main package, as Arch does with -docs splits)
 default_split_docs() {
 	local d
-
-	pkgdesc+=" (documentation)"
 
 	for d in doc info html sgml gtk-doc ri help; do
 		split_move "usr/share/$d"

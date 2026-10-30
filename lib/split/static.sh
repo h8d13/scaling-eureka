@@ -26,13 +26,13 @@ MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('static')
+split_desc[static]='static libraries'
 
 # port of abuild default_static. Only sees the .a files left by the
 # staticlibs option, which by default drops those with a .so sibling.
 default_split_static() {
 	local -a files types
 
-	pkgdesc+=" (static libraries)"
 	get_autosplit types
 	if in_array dev "${types[@]}"; then
 		depends=("$pkgname-dev=$(get_full_version)")

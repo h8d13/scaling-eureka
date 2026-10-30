@@ -26,13 +26,13 @@ MAKEPKG_LIBRARY=${MAKEPKG_LIBRARY:-'/usr/share/makepkg'}
 source "$MAKEPKG_LIBRARY/util/util.sh"
 
 split_types+=('libs')
+split_desc[libs]='libraries'
 split_required+=('libs')
 
 # port of abuild default_libs. The main package depends on the result, and
 # the libraries keep the main package's depends since pacman has no sibling
 # soname tracing yet.
 default_split_libs() {
-	pkgdesc+=" (libraries)"
 	depends=("${main_depends[@]}")
 
 	split_move usr/lib/lib*.so.[0-9]*
